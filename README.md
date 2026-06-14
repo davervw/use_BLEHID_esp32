@@ -43,3 +43,13 @@ len=4 01 01 80 03
 Disconnected
 
 ````
+
+BLE Devices tested:
+
+* [Lenovo TrackPoint Keyboard II](https://support.lenovo.com/us/en/accessories/acc500164-thinkpad-trackpoint-keyboard-ii-overview-and-service-parts)
+* [XBox One Controller](https://www.xbox.com/en-US/accessories/controllers/xbox-wireless-controller)
+* [Meetion BLE Foldable Keyboard K9552](https://www.amazon.com/MEETION-Bluetooth-Multi-Device-Keyboards-Full-Size/dp/B0GLXS4SVX)
+* [IINE GameBrick Mini Retro Controller](https://iine.store/products/iine-gamebrick-mini-retro-controller) (Play My Way) in XINPUT mode
+* [M5MiniJoyC Gamepad](https://github.com/davervw/m5_minijoystickc_gamepad)
+* [KanoPixelKit Gamepad](https://github.com/davervw/ble_gamepad_KanoPixelKit)
+* [Cardputer M5-Keyboard](https://github.com/m5stack/M5Cardputer-UserDemo) (FAIL - reports generic HID type, possible to relax code constrainst)
