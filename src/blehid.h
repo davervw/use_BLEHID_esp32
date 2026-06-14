@@ -4,7 +4,7 @@ class cBLEHID {
     public:
         void init();
         void scan(void (*scanResult)(bool found), uint32_t durationMs);
-        bool connect();
+        bool connect(void (*disconnected)());
         void disconnect();
         std::vector<uint8_t> getHIDmap();
         bool listenReports(void (*hidReport)(size_t len, uint8_t* data));

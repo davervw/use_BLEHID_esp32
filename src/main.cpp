@@ -28,10 +28,15 @@ void doScan()
     BLEHID.scan(&scanResult, 7500);
 }
 
+void onDisconnected()
+{
+    Serial.println("Disconnected");
+}
+
 void doConnect()
 {
     // Serial.println("Connecting...");
-    if (BLEHID.connect())
+    if (BLEHID.connect(&onDisconnected))
     {
         // Serial.println("Connected to device.");
         auto map = BLEHID.getHIDmap();

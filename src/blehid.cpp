@@ -13,8 +13,9 @@ static const NimBLEAdvertisedDevice *_device = nullptr;
 static NimBLEScan *_scan = nullptr;
 static NimBLEClient *_client = nullptr;
 
-static void (*scanResult)(bool found) = nullptr;
+static void (*_scanResult)(bool found) = nullptr;
 static void (*_hidReport)(size_t len, uint8_t *data);
+static void (*_disconnected)();
 
 // ------------------------------------------------------------------------------
 
@@ -38,10 +39,13 @@ void ClientCallbacks::onConnect(NimBLEClient *)
 void ClientCallbacks::onDisconnect(NimBLEClient *, int reason)
 {
     _isconnected = false;
+    _device = nullptr;
 #if (CORE_DEBUG_LEVEL >= 3)    
     Serial.printf("Disconnected, reason=%d\n", reason);
 #endif
     // clearMonitorSubscriptions();
+    if (_disconnected != nullptr)
+        _disconnected();
 }
 
 void ClientCallbacks::onPassKeyEntry(NimBLEConnInfo &connInfo)
@@ -128,8 +132,8 @@ void ScanCallbacks::onResult(const NimBLEAdvertisedDevice *advertisedDevice)
         _isgamepad = true;
     }
 
-    if (::scanResult != nullptr)
-        ::scanResult(true);
+    if (_scanResult != nullptr)
+        _scanResult(true);
     _scan->stop();
     _isscanning = false;
 }
@@ -142,8 +146,8 @@ void ScanCallbacks::onScanEnd(const NimBLEScanResults &results, int reason)
     if (_device != nullptr)
         return;
 
-    if (::scanResult != nullptr)
-        ::scanResult(false);
+    if (_scanResult != nullptr)
+        _scanResult(false);
 }
 
 void cBLEHID::init()
@@ -159,7 +163,7 @@ void cBLEHID::scan(void (*scanResult)(bool found), uint32_t durationMs)
     if (_isscanning)
         return;
 
-    ::scanResult = scanResult;
+    _scanResult = scanResult;
 
     _scan = NimBLEDevice::getScan();
     _scan->setScanCallbacks(&scanCallbacks, true);
@@ -174,8 +178,10 @@ void cBLEHID::scan(void (*scanResult)(bool found), uint32_t durationMs)
     _scan->start(durationMs, false, true);
 }
 
-bool cBLEHID::connect()
+bool cBLEHID::connect(void (*disconnected)())
 {
+    _disconnected = disconnected;
+
     NimBLEDevice::getScan()->stop();
 
     auto address = _device->getAddress();
@@ -229,6 +235,7 @@ void cBLEHID::disconnect()
     _client->disconnect();
     _client = nullptr;
     _isconnected = false;
+    _device = nullptr;
 }
 
 static std::vector<uint16_t> _subscribedHandles;
