@@ -15,9 +15,8 @@ static NimBLEClient *_client = nullptr;
 
 static void (*scanResult)(bool found) = nullptr;
 
-static void (*_keyboardReport)(uint8_t len, uint8_t *data);
-static void (*_mouseReport)(uint8_t len, uint8_t *data);
-static void (*_gamepadReport)(uint8_t len, uint8_t *data);
+static void (*_keyboardReport)(size_t len, uint8_t *data);
+static void (*_gamepadReport)(size_t len, uint8_t *data);
 
 // ------------------------------------------------------------------------------
 
@@ -302,15 +301,13 @@ static bool isHidInputReportCharacteristic(NimBLERemoteCharacteristic *character
 
 static void notifyCallback(NimBLERemoteCharacteristic *characteristic, uint8_t *data, size_t length, bool isNotify)
 {
-    // if (characteristic->getUUID() == NimBLEUUID((uint16_t)0x2A22) && length <= 255)
     Serial.printf("%s:", characteristic->getUUID().toString().c_str());
     _keyboardReport(length, data);
 }
 
 bool cBLEHID::listenReports(
-    void (*keyboardReport)(uint8_t len, uint8_t *data),
-    void (*mouseReport)(uint8_t len, uint8_t *data),
-    void (*gamepadReport)(uint8_t len, uint8_t *data))
+    void (*keyboardReport)(size_t len, uint8_t *data),
+    void (*gamepadReport)(size_t len, uint8_t *data))
 {
     if (!isConnected())
         return false;
@@ -318,7 +315,6 @@ bool cBLEHID::listenReports(
     clearMonitorSubscriptions();
 
     _keyboardReport = keyboardReport;
-    _mouseReport = mouseReport;
     _gamepadReport = gamepadReport;
 
     NimBLERemoteService *hid = _client->getService(NimBLEUUID((uint16_t)0x1812));
@@ -395,7 +391,8 @@ std::vector<uint8_t> cBLEHID::getHIDmap()
 {
     NimBLERemoteCharacteristic *mapChar = nullptr;
     NimBLERemoteService *hid = nullptr;
-    std::vector<uint8_t> result = std::vector<uint8_t>();
+    static std::vector<uint8_t> result = {};
+    result.clear();
 
     if (!isConnected())
     {
@@ -420,15 +417,12 @@ std::vector<uint8_t> cBLEHID::getHIDmap()
         return result;
     }
 
-    // auto data = reinterpret_cast<const uint8_t *>(value.data());
-    // auto len = value.size();
-    // for (int i = 0; ++i; i < len)
-    //     result.push_back(data[i]);
+    auto byteArray = reinterpret_cast<const uint8_t*>(value.data());
+    result = std::vector<uint8_t>(byteArray, byteArray + value.size());
     return result;
 }
 
 bool cBLEHID::isConnected() { return _isconnected; }
 bool cBLEHID::isScanning() { return _isscanning; }
 bool cBLEHID::isKeyboard() { return _iskeyboard; }
-bool cBLEHID::isMouse() { return _ismouse; }
 bool cBLEHID::isGamePad() { return _isgamepad; }
