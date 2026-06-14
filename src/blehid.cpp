@@ -39,6 +39,8 @@ void ClientCallbacks::onConnect(NimBLEClient *)
 void ClientCallbacks::onDisconnect(NimBLEClient *, int reason)
 {
     _isconnected = false;
+    _iskeyboard = false;
+    _isgamepad = false;
     _device = nullptr;
 #if (CORE_DEBUG_LEVEL >= 3)    
     Serial.printf("Disconnected, reason=%d\n", reason);
@@ -236,6 +238,8 @@ void cBLEHID::disconnect()
     _client = nullptr;
     _isconnected = false;
     _device = nullptr;
+    _iskeyboard = false;
+    _isgamepad = false;
 }
 
 static std::vector<uint16_t> _subscribedHandles;

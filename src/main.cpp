@@ -17,7 +17,7 @@ void hidReport(size_t len, uint8_t *data)
 void scanResult(bool found)
 {
     // Serial.println("Scanning finished.");
-    Serial.printf(found ? "FOUND\n" : "NOT FOUND\n");
+    Serial.printf(found ? "FOUND %s\n" : "NOT FOUND\n", BLEHID.isKeyboard() ? "Keyboard" : BLEHID.isGamePad() ? "Gamepad" : "");
     if (found)
         do_connect = true;
 }
@@ -25,12 +25,13 @@ void scanResult(bool found)
 void doScan()
 {
     // Serial.println("Scanning...");
-    BLEHID.scan(&scanResult, 7500);
+    BLEHID.scan(&scanResult, 0);
 }
 
 void onDisconnected()
 {
     Serial.println("Disconnected");
+    doScan();
 }
 
 void doConnect()
