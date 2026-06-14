@@ -9,14 +9,12 @@ static bool _iskeyboard = false;
 static bool _ismouse = false;
 static bool _isgamepad = false;
 
-static const NimBLEAdvertisedDevice *_keyboard = nullptr;
+static const NimBLEAdvertisedDevice *_device = nullptr;
 static NimBLEScan *_scan = nullptr;
 static NimBLEClient *_client = nullptr;
 
 static void (*scanResult)(bool found) = nullptr;
-
-static void (*_keyboardReport)(size_t len, uint8_t *data);
-static void (*_gamepadReport)(size_t len, uint8_t *data);
+static void (*_hidReport)(size_t len, uint8_t *data);
 
 // ------------------------------------------------------------------------------
 
@@ -89,7 +87,7 @@ void ScanCallbacks::onResult(const NimBLEAdvertisedDevice *advertisedDevice)
 {
     // Serial.println("Found something");
 
-    if (_keyboard != nullptr)
+    if (_device != nullptr)
         return;
 
     if (!advertisedDevice->isConnectable())
@@ -109,8 +107,13 @@ void ScanCallbacks::onResult(const NimBLEAdvertisedDevice *advertisedDevice)
     Serial.printf("Found appearance %04x\n", appearance);
     if (appearance == 0x3c1)
     {
-        _keyboard = advertisedDevice;
+        _device = advertisedDevice;
         _iskeyboard = true;
+    }
+    else if (appearance == 0x3c4)
+    {
+        _device = advertisedDevice;
+        _isgamepad = true;
     }
 
     if (::scanResult != nullptr)
@@ -124,7 +127,7 @@ void ScanCallbacks::onScanEnd(const NimBLEScanResults &results, int reason)
     _isscanning = false;
     // Serial.println("Scanning finished.");
 
-    if (_keyboard != nullptr)
+    if (_device != nullptr)
         return;
 
     if (::scanResult != nullptr)
@@ -163,7 +166,7 @@ bool cBLEHID::connect()
 {
     NimBLEDevice::getScan()->stop();
 
-    auto address = _keyboard->getAddress();
+    auto address = _device->getAddress();
 
     if (NimBLEDevice::getCreatedClientCount())
     {
@@ -302,20 +305,17 @@ static bool isHidInputReportCharacteristic(NimBLERemoteCharacteristic *character
 static void notifyCallback(NimBLERemoteCharacteristic *characteristic, uint8_t *data, size_t length, bool isNotify)
 {
     Serial.printf("%s:", characteristic->getUUID().toString().c_str());
-    _keyboardReport(length, data);
+    _hidReport(length, data);
 }
 
-bool cBLEHID::listenReports(
-    void (*keyboardReport)(size_t len, uint8_t *data),
-    void (*gamepadReport)(size_t len, uint8_t *data))
+bool cBLEHID::listenReports(void (*hidReport)(size_t len, uint8_t *data))
 {
     if (!isConnected())
         return false;
 
     clearMonitorSubscriptions();
 
-    _keyboardReport = keyboardReport;
-    _gamepadReport = gamepadReport;
+    _hidReport = hidReport;
 
     NimBLERemoteService *hid = _client->getService(NimBLEUUID((uint16_t)0x1812));
     if (hid == nullptr)

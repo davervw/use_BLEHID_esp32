@@ -4,15 +4,7 @@
 // forward declaration
 void doScan();
 
-void keyboardReport(size_t len, uint8_t* data)
-{
-    Serial.printf("len=%d", len);
-    for (auto i=0; i<len; ++i)
-        Serial.printf(" %02X", data[i]);
-    Serial.println();
-}
-
-void gamepadReport(size_t len, uint8_t* data)
+void hidReport(size_t len, uint8_t* data)
 {
     Serial.printf("len=%d", len);
     for (auto i=0; i<len; ++i)
@@ -59,16 +51,16 @@ void loop()
     M5.update();
 
     static bool connect_attempt = false;
-    if (!BLEHID.isScanning() && !BLEHID.isConnected() && BLEHID.isKeyboard() && !connect_attempt)
+    if (!BLEHID.isScanning() && !BLEHID.isConnected() && (BLEHID.isKeyboard() || BLEHID.isGamePad()) && !connect_attempt)
     {
         connect_attempt = true;
         Serial.println("Connecting...");
         if (BLEHID.connect()) 
         {
-            Serial.println("Connected to keyboard.");
+            Serial.println("Connected to device.");
             auto map = BLEHID.getHIDmap();
             Serial.printf("HID map size = %ld", (long)map.size());
-            if (BLEHID.listenReports(&keyboardReport, &gamepadReport))
+            if (BLEHID.listenReports(&hidReport))
                 Serial.println("Listening for reports");
             else
                 Serial.println("Failed to listen for reports");
