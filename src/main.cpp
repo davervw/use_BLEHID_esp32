@@ -1,4 +1,5 @@
 #include <M5Unified.h>
+#include <WiFi.h>
 #include "autoblehid.h"
 
 void hidReport(size_t len, uint8_t *data)
@@ -16,6 +17,10 @@ void setup()
     {
         delay(10);
     }
+
+    WiFi.disconnect();
+    delay(100);
+    WiFi.mode(WIFI_OFF);
 
     M5.begin();
     M5.Display.setRotation(1);
