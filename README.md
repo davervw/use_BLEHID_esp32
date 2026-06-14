@@ -10,6 +10,8 @@ It is up to the user of the library to interpret the input reports into keys pre
 
 The library is a work in progress and may not suit all your needs, and have other limitations.  It is currently targeting M5Stack devices, but can be revised to work with generic ESP32.  Build environment expects platformio (for stricter versioning).
 
+Code is based on my [BLEcli](https://github.com/davervw/BLEcli) which is interactive, while this library has rapid, automatic connections.
+
 ````
 void hidReport(size_t len, uint8_t *data);
 
