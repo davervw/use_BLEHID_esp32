@@ -302,7 +302,7 @@ static bool isHidInputReportCharacteristic(NimBLERemoteCharacteristic *character
 
 static void notifyCallback(NimBLERemoteCharacteristic *characteristic, uint8_t *data, size_t length, bool isNotify)
 {
-    //if (characteristic->getUUID() == NimBLEUUID((uint16_t)0x2A22) && length <= 255)
+    // if (characteristic->getUUID() == NimBLEUUID((uint16_t)0x2A22) && length <= 255)
     Serial.printf("%s:", characteristic->getUUID().toString().c_str());
     _keyboardReport(length, data);
 }
@@ -389,6 +389,42 @@ bool cBLEHID::listenReports(
         Serial.println("No HID characteristics were subscribable.");
     }
     return subscribed;
+}
+
+std::vector<uint8_t> cBLEHID::getHIDmap()
+{
+    NimBLERemoteCharacteristic *mapChar = nullptr;
+    NimBLERemoteService *hid = nullptr;
+    std::vector<uint8_t> result = std::vector<uint8_t>();
+
+    if (!isConnected())
+    {
+        return result;
+    }
+
+    hid = _client->getService(NimBLEUUID((uint16_t)0x1812));
+    if (hid == nullptr)
+    {
+        return result;
+    }
+
+    mapChar = hid->getCharacteristic(NimBLEUUID((uint16_t)0x2A4B));
+    if (mapChar == nullptr)
+    {
+        return result;
+    }
+
+    std::string value = mapChar->readValue();
+    if (value.empty())
+    {
+        return result;
+    }
+
+    // auto data = reinterpret_cast<const uint8_t *>(value.data());
+    // auto len = value.size();
+    // for (int i = 0; ++i; i < len)
+    //     result.push_back(data[i]);
+    return result;
 }
 
 bool cBLEHID::isConnected() { return _isconnected; }

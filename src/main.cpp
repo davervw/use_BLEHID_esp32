@@ -69,6 +69,8 @@ void loop()
         if (BLEHID.connect()) 
         {
             Serial.println("Connected to keyboard.");
+            auto map = BLEHID.getHIDmap();
+            Serial.printf("HID map size = %ld", (long)map.size());
             if (BLEHID.listenReports(&keyboardReport, &mouseReport, &gamepadReport))
                 Serial.println("Listening for reports");
             else
