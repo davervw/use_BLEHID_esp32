@@ -38,20 +38,26 @@ void ClientCallbacks::onConnect(NimBLEClient *)
 void ClientCallbacks::onDisconnect(NimBLEClient *, int reason)
 {
     _isconnected = false;
+#if (CORE_DEBUG_LEVEL >= 3)    
     Serial.printf("Disconnected, reason=%d\n", reason);
+#endif
     // clearMonitorSubscriptions();
 }
 
 void ClientCallbacks::onPassKeyEntry(NimBLEConnInfo &connInfo)
 {
+#if (CORE_DEBUG_LEVEL >= 3)    
     Serial.println("Passkey requested; injecting default test value.");
+#endif
     NimBLEDevice::injectPassKey(connInfo, 123456);
 }
 
 void ClientCallbacks::onConfirmPasskey(NimBLEConnInfo &connInfo, uint32_t passkey)
 {
+#if (CORE_DEBUG_LEVEL >= 3)    
     Serial.print("Confirming passkey ");
     Serial.println(passkey);
+#endif
     NimBLEDevice::injectConfirmPasskey(connInfo, true);
 }
 
@@ -59,7 +65,9 @@ void ClientCallbacks::onAuthenticationComplete(NimBLEConnInfo &connInfo)
 {
     if (!connInfo.isEncrypted())
     {
+#if (CORE_DEBUG_LEVEL >= 3)    
         Serial.println("Authentication complete, but link is not encrypted.");
+#endif
         NimBLEClient *client = NimBLEDevice::getClientByHandle(connInfo.getConnHandle());
         if (client != nullptr)
         {
@@ -68,7 +76,9 @@ void ClientCallbacks::onAuthenticationComplete(NimBLEConnInfo &connInfo)
     }
     else
     {
+#if (CORE_DEBUG_LEVEL >= 3)    
         Serial.println("Authentication complete.");
+#endif
     }
 }
 
@@ -104,7 +114,9 @@ void ScanCallbacks::onResult(const NimBLEAdvertisedDevice *advertisedDevice)
         return;
 
     auto appearance = advertisedDevice->getAppearance();
+#if (CORE_DEBUG_LEVEL >= 3)    
     Serial.printf("Found appearance %04x\n", appearance);
+#endif    
     if (appearance == 0x3c1)
     {
         _device = advertisedDevice;
@@ -173,7 +185,9 @@ bool cBLEHID::connect()
         _client = NimBLEDevice::getClientByPeerAddress(address);
         if (_client != nullptr && _client->isConnected())
         {
+#if (CORE_DEBUG_LEVEL >= 3)    
             Serial.println("Already connected.");
+#endif
             return true;
         }
         if (_client == nullptr)
@@ -187,7 +201,9 @@ bool cBLEHID::connect()
         _client = NimBLEDevice::createClient();
         if (_client == nullptr)
         {
+#if (CORE_DEBUG_LEVEL >= 3)    
             Serial.println("Failed to create client.");
+#endif
             return false;
         }
         _client->setClientCallbacks(&clientCallbacks, false);
@@ -197,7 +213,9 @@ bool cBLEHID::connect()
 
     if (!_client->connect(address, false))
     {
+#if (CORE_DEBUG_LEVEL >= 3)    
         Serial.println("Connect failed.");
+#endif
         return false;
     }
 
@@ -304,7 +322,9 @@ static bool isHidInputReportCharacteristic(NimBLERemoteCharacteristic *character
 
 static void notifyCallback(NimBLERemoteCharacteristic *characteristic, uint8_t *data, size_t length, bool isNotify)
 {
+#if (CORE_DEBUG_LEVEL >= 3)    
     Serial.printf("%s:", characteristic->getUUID().toString().c_str());
+#endif
     _hidReport(length, data);
 }
 
@@ -320,7 +340,9 @@ bool cBLEHID::listenReports(void (*hidReport)(size_t len, uint8_t *data))
     NimBLERemoteService *hid = _client->getService(NimBLEUUID((uint16_t)0x1812));
     if (hid == nullptr)
     {
+#if (CORE_DEBUG_LEVEL >= 3)    
         Serial.println("HID service not found.");
+#endif
         return false;
     }
 
@@ -341,12 +363,14 @@ bool cBLEHID::listenReports(void (*hidReport)(size_t len, uint8_t *data))
             continue;
         }
 
+#if (CORE_DEBUG_LEVEL >= 3)    
         Serial.print("Inspecting ");
         Serial.print(chr->getUUID().toString().c_str());
         Serial.print(" notify=");
         Serial.print(chr->canNotify() ? "y" : "n");
         Serial.print(" indicate=");
         Serial.println(chr->canIndicate() ? "y" : "n");
+#endif
 
         if (chr->canNotify())
         {
@@ -354,13 +378,17 @@ bool cBLEHID::listenReports(void (*hidReport)(size_t len, uint8_t *data))
             {
                 subscribed = true;
                 _subscribedHandles.push_back(chr->getHandle());
+#if (CORE_DEBUG_LEVEL >= 3)    
                 Serial.print("Subscribed notify ");
                 Serial.println(chr->getUUID().toString().c_str());
+#endif                
             }
             else
             {
+#if (CORE_DEBUG_LEVEL >= 3)    
                 Serial.print("Failed subscribe notify ");
                 Serial.println(chr->getUUID().toString().c_str());
+#endif
             }
         }
         else if (chr->canIndicate())
@@ -369,20 +397,26 @@ bool cBLEHID::listenReports(void (*hidReport)(size_t len, uint8_t *data))
             {
                 subscribed = true;
                 _subscribedHandles.push_back(chr->getHandle());
+#if (CORE_DEBUG_LEVEL >= 3)    
                 Serial.print("Subscribed indicate ");
                 Serial.println(chr->getUUID().toString().c_str());
+#endif
             }
             else
             {
+#if (CORE_DEBUG_LEVEL >= 3)    
                 Serial.print("Failed subscribe indicate ");
                 Serial.println(chr->getUUID().toString().c_str());
+#endif
             }
         }
     }
 
     if (!subscribed)
     {
+#if (CORE_DEBUG_LEVEL >= 3)    
         Serial.println("No HID characteristics were subscribable.");
+#endif
     }
     return subscribed;
 }
