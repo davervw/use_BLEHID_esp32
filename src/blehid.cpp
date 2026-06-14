@@ -331,11 +331,94 @@ static bool isHidInputReportCharacteristic(NimBLERemoteCharacteristic *character
     return false;
 }
 
+#if (CORE_DEBUG_LEVEL >= 3)    
+// Definition of possible HID device components
+enum HidDeviceType { 
+    HID_UNKNOWN, 
+    HID_KEYBOARD, 
+    HID_MOUSE, 
+    HID_MEDIA_KEYS, 
+    HID_GAMEPAD 
+};
+
+// Global maps for the callback to use
+std::map<uint16_t, HidDeviceType> handleToTypeMap;
+std::map<uint16_t, uint8_t> handleToReportIdMap;
+
+static void discoverAndClassifyCharacteristics(NimBLERemoteService* pService) {
+    auto characteristicMap = pService->getCharacteristics();
+    
+    for (auto pChr : characteristicMap) {
+        // Match only standard generic HID Report characteristics
+        if (pChr->getUUID() == NimBLEUUID((uint16_t)0x2A4D)) {
+            uint16_t currentHandle = pChr->getHandle();
+            
+            // Fetch the Report Reference descriptor (0x2908)
+            NimBLERemoteDescriptor* pDesc = pChr->getDescriptor(NimBLEUUID((uint16_t)0x2908));
+            
+            if (pDesc != nullptr) {
+                std::string descVal = pDesc->readValue();
+                
+                if (descVal.length() >= 2) {
+                    uint8_t reportId   = descVal[0]; // Byte 0 = Report ID
+                    uint8_t reportType = descVal[1]; // Byte 1 = Type (1=Input, 2=Output)
+                    
+                    HidDeviceType identifiedType = HID_UNKNOWN;
+
+                    if (reportType == 1) { // Process INPUT reports only
+                        // Match these IDs to your device's specific HID descriptor map:
+                        if (reportId == 0x01) {
+                            identifiedType = HID_KEYBOARD;
+                            Serial.printf("Handle 0x%04X -> KEYBOARD (Report ID: %d)\n", currentHandle, reportId);
+                        } 
+                        else if (reportId == 0x02) { 
+                            identifiedType = HID_MOUSE;
+                            Serial.printf("Handle 0x%04X -> MOUSE (Report ID: %d)\n", currentHandle, reportId);
+                        } 
+                        else if (reportId == 0x03) {
+                            identifiedType = HID_GAMEPAD;
+                            Serial.printf("Handle 0x%04X -> GAMEPAD (Report ID: %d)\n", currentHandle, reportId);
+                        }
+                        else {
+                            // High Report IDs or multi-media maps usually contain consumer controls
+                            identifiedType = HID_MEDIA_KEYS;
+                            Serial.printf("Handle 0x%04X -> MEDIA KEYS (Report ID: %d)\n", currentHandle, reportId);
+                        }
+                    }
+                    
+                    // Cache the maps for instant callback lookup
+                    handleToTypeMap[currentHandle] = identifiedType;
+                    handleToReportIdMap[currentHandle] = reportId;
+                }
+            }
+        }
+    }
+}
+#endif
+
 static void notifyCallback(NimBLERemoteCharacteristic *characteristic, uint8_t *data, size_t length, bool isNotify)
 {
 #if (CORE_DEBUG_LEVEL >= 3)    
     Serial.printf("%s:", characteristic->getUUID().toString().c_str());
+
+    uint16_t currentHandle = characteristic->getHandle();
+
+    HidDeviceType deviceType = HID_UNKNOWN;
+    uint8_t reportId = 0;
+
+    if (handleToTypeMap.find(currentHandle) != handleToTypeMap.end()) {
+        deviceType = handleToTypeMap[currentHandle];
+        reportId = handleToReportIdMap[currentHandle];
+        switch (deviceType)
+        {
+            case HID_KEYBOARD: Serial.print("Keyboard: "); break;
+            case HID_MOUSE: Serial.print("Mouse: "); break;
+            case HID_MEDIA_KEYS: Serial.print("Media Keys: "); break;
+            case HID_GAMEPAD: Serial.print("Gamepad: "); break;
+        }
+    }
 #endif
+
     _hidReport(length, data);
 }
 
@@ -356,6 +439,10 @@ bool cBLEHID::listenReports(void (*hidReport)(size_t len, uint8_t *data))
 #endif
         return false;
     }
+
+#if (CORE_DEBUG_LEVEL >= 3)    
+    discoverAndClassifyCharacteristics(hid);
+#endif
 
     bool subscribed = false;
     const auto &chars = hid->getCharacteristics(true);
