@@ -1,4 +1,4 @@
-#include <Arduino.h>
+#include <vector>
 
 class cBLEHID {
     public:
