@@ -10,7 +10,10 @@
 // https://github.com/davervw
 //////////////////////////////////////////////////////////////////////
 
+#include <Arduino.h>
+#ifdef M5STACK
 #include <M5Unified.h>
+#endif
 #include <WiFi.h>
 #include "autoblehid.h"
 
@@ -34,6 +37,7 @@ void setup()
     delay(100);
     WiFi.mode(WIFI_OFF);
 
+#ifdef M5STACK
     M5.begin();
     M5.Display.setRotation(1);
     M5.Display.fillScreen(TFT_BLACK);
@@ -41,13 +45,16 @@ void setup()
     M5.Display.setTextSize(2);
     M5.Display.setTextDatum(middle_center);
     M5.Display.drawString("use_BLEHID", M5.Display.width() / 2, M5.Display.height() / 2);
+#endif    
 
     AUTOBLEHID.begin(&hidReport);
 }
 
 void loop()
 {
+#ifdef M5STACK    
     M5.update();
+#endif    
     AUTOBLEHID.update();
 
     delay(10);

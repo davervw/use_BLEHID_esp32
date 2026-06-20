@@ -10,6 +10,8 @@
 // https://github.com/davervw
 //////////////////////////////////////////////////////////////////////
 
+#include <Arduino.h>
+#include <map>
 #include <NimBLEDevice.h>
 #include "blehid.h"
 
