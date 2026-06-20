@@ -8,9 +8,9 @@ Input reports are unparsed length plus byte arrays.  Keyboard/mouse reports shou
 
 It is up to the user of the library to interpret the input reports into keys pressed, buttons pressed, hat/gamepad position, etc.
 
-The library is a work in progress and may not suit all your needs, and have other limitations.  It is currently targeting M5Stack devices, but can be revised to work with generic ESP32.  Build environment expects platformio (for stricter versioning).
+The library is a work in progress and may not suit all your needs, and have other limitations.  It is currently targeting a few M5Stack devices, and generic ESP32-C3.  Build environment expects platformio (for stricter versioning).
 
-Code is based on my [BLEcli](https://github.com/davervw/BLEcli) which is interactive, while this library has rapid, automatic connections.
+Code is based on my [BLEcli](https://github.com/davervw/BLEcli) that is interactive and requires multiple steps.  In contrast this code is rapid, with automatic connection.
 
 ````
 void hidReport(size_t len, uint8_t *data);
