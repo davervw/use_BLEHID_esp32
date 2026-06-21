@@ -25,7 +25,9 @@ static void (*_hidReport)(size_t length, uint8_t* data) = nullptr;
 static void scanResult(bool found)
 {
     // Serial.println("Scanning finished.");
+#if (CORE_DEBUG_LEVEL >= 3)    
     Serial.printf(found ? "FOUND %s\n" : "NOT FOUND\n", BLEHID.isKeyboard() ? "Keyboard" : BLEHID.isGamePad() ? "Gamepad" : "");
+#endif    
     if (found)
         do_connect = true;
 }

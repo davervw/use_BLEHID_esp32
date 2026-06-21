@@ -19,9 +19,15 @@
 
 void hidReport(size_t len, uint8_t *data)
 {
-    Serial.printf("len=%d", len);
+#if (CORE_DEBUG_LEVEL >= 3)
+    Serial.printf("len=%d ", len);
+#endif    
     for (auto i = 0; i < len; ++i)
-        Serial.printf(" %02X", data[i]);
+    {
+        if (i > 0)
+            Serial.print(' ');
+        Serial.printf("%02X", data[i]);
+    }
     Serial.println();
 }
 
