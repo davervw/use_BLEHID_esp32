@@ -54,4 +54,4 @@ BLE Devices tested:
 * [IINE GameBrick Mini Retro Controller](https://iine.store/products/iine-gamebrick-mini-retro-controller) (Play My Way) in XINPUT mode
 * [M5MiniJoyC Gamepad](https://github.com/davervw/m5_minijoystickc_gamepad)
 * [KanoPixelKit Gamepad](https://github.com/davervw/ble_gamepad_KanoPixelKit)
-* [Cardputer M5-Keyboard](https://github.com/m5stack/M5Cardputer-UserDemo) (FAIL - reports generic HID type, possible to relax code constrainst)
+* [Cardputer M5-Keyboard](https://github.com/m5stack/M5Cardputer-UserDemo) (requires [Pull Request #44](https://github.com/davervw/M5Cardputer-UserDemo/tree/davervw-ble-keyboard-fixes))
