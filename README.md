@@ -16,32 +16,32 @@ Code is based on my [BLEcli](https://github.com/davervw/BLEcli) that is interact
 void hidReport(size_t len, uint8_t *data);
 
 FOUND Keyboard
-len=8 00 00 04 00 00 00 00 00
-len=8 00 00 00 00 00 00 00 00
-len=8 00 00 05 00 00 00 00 00
-len=8 00 00 00 00 00 00 00 00
-len=8 00 00 06 00 00 00 00 00
-len=8 00 00 00 00 00 00 00 00
-len=2 B5 00
-len=2 00 00
-len=4 01 00 00 00
-len=4 00 00 00 00
-len=4 00 FF 00 00
-len=4 00 FF 00 00
+00 00 04 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 05 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 06 00 00 00 00 00
+00 00 00 00 00 00 00 00
+B5 00
+00 00
+01 00 00 00
+00 00 00 00
+00 FF 00 00
+00 FF 00 00
 Disconnected
 
 FOUND Gamepad
 Failed to receive HID map
-len=4 00 FD 50 00
-len=4 00 01 80 00
-len=4 00 01 80 03
-len=4 05 01 80 00
-len=4 05 01 80 05
-len=4 01 01 80 00
-len=4 01 01 80 07
-len=4 00 01 80 00
-len=4 00 01 80 03
-len=4 01 01 80 03
+00 FD 50 00
+00 01 80 00
+00 01 80 03
+05 01 80 00
+05 01 80 05
+01 01 80 00
+01 01 80 07
+00 01 80 00
+00 01 80 03
+01 01 80 03
 Disconnected
 
 ````
