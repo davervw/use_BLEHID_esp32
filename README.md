@@ -4,7 +4,7 @@ This project is the beginning of an Arduino library to support receiving input r
 
 Scans until finds a device to connect with (must be in pairing mode), connects, and registers for input reports.  If disconnects, then goes back into scanning mode.
 
-Input reports are unparsed length plus byte arrays.  Keyboard/mouse reports should be pretty standard.  Gamepad reports will require additional parsing of HID map (warning: not yet exposed to upper interface, nor interpreted yet).
+Input reports are *conditionally* CBM keyboard scan codes, or unparsed byte arrays (other or all HID devices).  Mouse/trackpad reports should be pretty standard.  Gamepad reports will require additional parsing of HID map (warning: not yet exposed to upper interface, nor interpreted yet).
 
 It is up to the user of the library to interpret the input reports into keys pressed, buttons pressed, hat/gamepad position, etc.
 
@@ -16,20 +16,6 @@ Code is based on my [BLEcli](https://github.com/davervw/BLEcli) that is interact
 void hidReport(size_t len, uint8_t *data, bool isCBM);
 
 use_BLEHID_esp  Copyright (c) 2026 David R. Van Wagner  MIT LICENSE  davevw.com  https://github.com/davervw
-
-00 00 04 00 00 00 00 00
-00 00 00 00 00 00 00 00
-00 00 05 00 00 00 00 00
-00 00 00 00 00 00 00 00
-00 00 06 00 00 00 00 00
-00 00 00 00 00 00 00 00
-B5 00
-00 00
-01 00 00 00
-00 00 00 00
-00 FF 00 00
-00 FF 00 00
-Disconnected
 
 Failed to receive HID map
 00 FD 50 00

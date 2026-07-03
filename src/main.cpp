@@ -40,8 +40,12 @@
 #endif
 #include <WiFi.h>
 #include "autoblehid.h"
+#include "blehid.h"
 #include "HIDtoCBMkeyboard.h"
 
+// default is to output HID byte reports for more global use
+// here is an option to output Commodore scan codes that is mostly useful for my own emulators; it's just for me, so default is off
+const bool COMMODORE_OUTPUT = false; // true to convert BLE keyboards to output CBM keyboard scan codes, otherwise HID bytes for generic use
 HIDtoCBMkeyboard hidcbm;
 
 void hidReport(size_t len, uint8_t *data, bool isCBM)
@@ -49,19 +53,32 @@ void hidReport(size_t len, uint8_t *data, bool isCBM)
 #if (CORE_DEBUG_LEVEL >= 3)
     Serial.printf("len=%d ", len);
 #endif
-    if (isCBM) {
+    if (isCBM) { // Commodore keyboards will always output in Commodore format
         Serial.print(String(data, len));
         return;
     }
+
+bool isKeyboard = BLEHID.isKeyboard();
 #if (CORE_DEBUG_LEVEL >= 3)
-    for (auto i = 0; i < len; ++i)
-    {
-        if (i > 0)
-            Serial.print(' ');
-        Serial.printf("%02X", data[i]);
-    }
-    Serial.println();
+    bool outputHex = true;
+#else
+    bool outputHex = !isKeyboard || !COMMODORE_OUTPUT;
 #endif
+    if (outputHex) {
+        for (auto i = 0; i < len; ++i)
+        {
+            if (i > 0)
+                Serial.print(' ');
+            Serial.printf("%02X", data[i]);
+        }
+        Serial.println();
+    }
+
+    if (!isKeyboard)
+        return;
+
+    if (!COMMODORE_OUTPUT)
+        return;
 
     hidcbm.OnKeyData(len, data);
     String s = hidcbm.Read();
