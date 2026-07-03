@@ -17,6 +17,13 @@ void hidReport(size_t len, uint8_t *data, bool isCBM);
 
 use_BLEHID_esp  Copyright (c) 2026 David R. Van Wagner  MIT LICENSE  davevw.com  https://github.com/davervw
 
+00 00 04 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 05 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 06 00 00 00 00 00
+00 00 00 00 00 00 00 00
+
 Failed to receive HID map
 00 FD 50 00
 00 01 80 00
