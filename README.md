@@ -1,4 +1,4 @@
-# use_BLE_esp32 - Automatic attaching to BLE HID keyboard/mouse/gamepad
+# use_BLE_esp32 - Automatic attaching to BLE HID keyboard/mouse/gamepad, with Commodore options
 
 This project is the beginning of an Arduino library to support receiving input reports from your BLE HID devices.
 
