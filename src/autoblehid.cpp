@@ -20,7 +20,7 @@ AutoBleHid AUTOBLEHID;
 static void doScan();
 
 static bool do_connect = false;
-static void (*_hidReport)(size_t length, uint8_t* data) = nullptr;
+static void (*_hidReport)(size_t length, uint8_t* data, bool isCBM) = nullptr;
 
 static void scanResult(bool found)
 {
@@ -34,7 +34,9 @@ static void scanResult(bool found)
 
 static void doScan()
 {
-    // Serial.println("Scanning...");
+#if (CORE_DEBUG_LEVEL >= 3)    
+    Serial.println("Scanning...");
+#endif
     BLEHID.scan(&scanResult, 0);
 }
 
@@ -46,17 +48,25 @@ static void onDisconnected()
 
 static void doConnect()
 {
-    // Serial.println("Connecting...");
+#if (CORE_DEBUG_LEVEL >= 3)    
+    Serial.println("Connecting...");
+#endif
     if (BLEHID.connect(&onDisconnected))
     {
-        // Serial.println("Connected to device.");
+#if (CORE_DEBUG_LEVEL >= 3)    
+        Serial.println("Connected to device.");
+#endif
         auto map = BLEHID.getHIDmap();
-        // Serial.printf("HID map size = %ld\n", (long)map.size());
+#if (CORE_DEBUG_LEVEL >= 3)    
+        Serial.printf("HID map size = %ld\n", (long)map.size());
+#endif
         if (map.size() == 0)
             Serial.println("Failed to receive HID map");
         if (BLEHID.listenReports(_hidReport))
         {
-            // Serial.println("Listening for reports");
+#if (CORE_DEBUG_LEVEL >= 3)    
+            Serial.println("Listening for reports");
+#endif
         }
         else
         {
@@ -65,7 +75,7 @@ static void doConnect()
     }
 }
 
-void AutoBleHid::begin(void (*hidReport)(size_t length, uint8_t* data))
+void AutoBleHid::begin(void (*hidReport)(size_t length, uint8_t* data, bool isCBM))
 {
     _hidReport = hidReport;
     BLEHID.init();

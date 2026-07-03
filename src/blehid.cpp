@@ -28,9 +28,12 @@ static NimBLEScan *_scan = nullptr;
 static NimBLEClient *_client = nullptr;
 
 static void (*_scanResult)(bool found) = nullptr;
-static void (*_hidReport)(size_t len, uint8_t *data);
+static void (*_hidReport)(size_t len, uint8_t *data, bool isCBM);
 static void (*_disconnected)();
 
+static const NimBLEUUID HIDSERVICEUUID = NimBLEUUID("1812");
+static const NimBLEUUID CBMSERVICEUUID = NimBLEUUID("65da11f8-dc46-4cd6-bdc9-ba862c4634f5");
+static const NimBLEUUID CBMCHARACTERISTICUUID = NimBLEUUID("1652b589-a0cc-4319-87fd-d80ccbd668f0");
 // ------------------------------------------------------------------------------
 
 class ClientCallbacks : public NimBLEClientCallbacks
@@ -126,26 +129,30 @@ void ScanCallbacks::onResult(const NimBLEAdvertisedDevice *advertisedDevice)
     if (!advertisedDevice->haveServiceUUID())
         return;
 
-    // Only accept devices advertising the HID service (0x1812)
-    if (!advertisedDevice->isAdvertisingService(NimBLEUUID("1812")))
+    // Only accept devices advertising the HID service (0x1812) or custom service
+    bool isHID = advertisedDevice->isAdvertisingService(HIDSERVICEUUID);
+    bool isCBM = advertisedDevice->isAdvertisingService(CBMSERVICEUUID);
+    if (!isHID && !isCBM)
         return;
 
-    if (!advertisedDevice->haveAppearance())
+    if (!isCBM && !advertisedDevice->haveAppearance())
         return;
 
     auto appearance = advertisedDevice->getAppearance();
 #if (CORE_DEBUG_LEVEL >= 3)    
     Serial.printf("Found appearance %04x\n", appearance);
 #endif    
-    if (appearance == 0x3c1)
+    if (appearance == 0x3c1 || isCBM)
     {
         _device = advertisedDevice;
         _iskeyboard = true;
+        // Serial.println("Found keyboard");
     }
     else if (appearance == 0x3c4)
     {
         _device = advertisedDevice;
         _isgamepad = true;
+        // Serial.println("Found gamepad");
     }
 
     if (_scanResult != nullptr)
@@ -265,11 +272,11 @@ static NimBLERemoteCharacteristic *findHidCharacteristicByHandle(uint16_t handle
         return nullptr;
     }
 
-    NimBLERemoteService *hid = _client->getService(NimBLEUUID((uint16_t)0x1812));
+    NimBLERemoteService *hid = _client->getService(HIDSERVICEUUID);
     if (hid == nullptr)
-    {
+        hid = _client->getService(CBMSERVICEUUID);
+    if (hid == nullptr)
         return nullptr;
-    }
 
     const auto &chars = hid->getCharacteristics(true);
     for (auto *chr : chars)
@@ -433,10 +440,11 @@ static void notifyCallback(NimBLERemoteCharacteristic *characteristic, uint8_t *
     }
 #endif
 
-    _hidReport(length, data);
+    bool isCBM = characteristic->getUUID() == CBMCHARACTERISTICUUID;
+    _hidReport(length, data, isCBM);
 }
 
-bool cBLEHID::listenReports(void (*hidReport)(size_t len, uint8_t *data))
+bool cBLEHID::listenReports(void (*hidReport)(size_t len, uint8_t *data, bool isCBM))
 {
     if (!isConnected())
         return false;
@@ -445,7 +453,9 @@ bool cBLEHID::listenReports(void (*hidReport)(size_t len, uint8_t *data))
 
     _hidReport = hidReport;
 
-    NimBLERemoteService *hid = _client->getService(NimBLEUUID((uint16_t)0x1812));
+    NimBLERemoteService *hid = _client->getService(HIDSERVICEUUID);
+    if (hid == nullptr)
+        hid = _client->getService(CBMSERVICEUUID);
     if (hid == nullptr)
     {
 #if (CORE_DEBUG_LEVEL >= 3)    
@@ -469,8 +479,9 @@ bool cBLEHID::listenReports(void (*hidReport)(size_t len, uint8_t *data))
 
         uint8_t reportId = 0;
         const bool isBootKeyboard = chr->getUUID().equals(NimBLEUUID((uint16_t)0x2A22));
+        const bool isCbmKeyboard = chr->getUUID().equals(CBMCHARACTERISTICUUID);
         const bool isInputReport = isHidInputReportCharacteristic(chr, &reportId);
-        if (!isBootKeyboard && !isInputReport)
+        if (!isBootKeyboard && !isCbmKeyboard && !isInputReport)
         {
             continue;
         }
@@ -545,11 +556,9 @@ std::vector<uint8_t> cBLEHID::getHIDmap()
         return result;
     }
 
-    hid = _client->getService(NimBLEUUID((uint16_t)0x1812));
+    hid = _client->getService(HIDSERVICEUUID);
     if (hid == nullptr)
-    {
         return result;
-    }
 
     mapChar = hid->getCharacteristic(NimBLEUUID((uint16_t)0x2A4B));
     if (mapChar == nullptr)

@@ -17,11 +17,15 @@
 #include <WiFi.h>
 #include "autoblehid.h"
 
-void hidReport(size_t len, uint8_t *data)
+void hidReport(size_t len, uint8_t *data, bool isCBM)
 {
 #if (CORE_DEBUG_LEVEL >= 3)
     Serial.printf("len=%d ", len);
-#endif    
+#endif
+    if (isCBM) {
+        Serial.print(String(data, len));
+        return;
+    }
     for (auto i = 0; i < len; ++i)
     {
         if (i > 0)
@@ -51,7 +55,8 @@ void setup()
     M5.Display.setTextSize(2);
     M5.Display.setTextDatum(middle_center);
     M5.Display.drawString("use_BLEHID", M5.Display.width() / 2, M5.Display.height() / 2);
-#endif    
+#endif
+    Serial.println("use_BLEHID_esp  Copyright (c) 2026 David R. Van Wagner  MIT LICENSE  davevw.com  https://github.com/davervw");    
 
     AUTOBLEHID.begin(&hidReport);
 }

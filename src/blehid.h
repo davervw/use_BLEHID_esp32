@@ -19,7 +19,7 @@ class cBLEHID {
         bool connect(void (*disconnected)());
         void disconnect();
         std::vector<uint8_t> getHIDmap();
-        bool listenReports(void (*hidReport)(size_t len, uint8_t* data));
+        bool listenReports(void (*hidReport)(size_t len, uint8_t* data, bool isCBM));
         bool isConnected();
         bool isScanning();
         bool isKeyboard();
